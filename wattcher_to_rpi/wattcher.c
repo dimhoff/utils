@@ -45,7 +45,9 @@
 
 #include <sys/epoll.h>
 
-#define GPIO_PINNUM "17"
+#define ENABLE_RPI_PULLUP 1
+
+#define GPIO_PINNUM "4"
 #define TRIGGER_EDGE "rising"
 
 #define CVALUE 600
@@ -98,6 +100,22 @@ void gpio_cb()
 	}
 }
 
+#ifdef ENABLE_RPI_PULLUP
+int enable_pullup()
+{
+	int status;
+
+	// Call the 'gpio' utlitity from WiringPI, since sysfs interface
+	// doesn't support changing this.
+	status = system("gpio -g mode " GPIO_PINNUM " up");
+	if (! WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+		return -1;
+	}
+
+	return 0;
+}
+#endif // ENABLE_RPI_PULLUP
+
 int main()
 {
 	struct epoll_event ev[EPOLL_MAX_EVENTS_PER_RUN];
@@ -142,6 +160,15 @@ int main()
 		goto cleanup;
 	}
 	close(gpio_fd);
+
+#ifdef ENABLE_RPI_PULLUP
+	// Enable internal pull-up
+	if (enable_pullup() != 0) {
+		fprintf(stderr, "Failed to enable internal pull-up\n");
+		retval = EXIT_FAILURE;
+		goto cleanup;
+	}
+#endif // ENABLE_RPI_PULLUP
 
 	// open gpio value file
 	if ((gpio_fd = open("/sys/class/gpio/gpio"GPIO_PINNUM"/value", O_RDONLY)) == -1) {
