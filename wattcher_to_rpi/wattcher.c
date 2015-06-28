@@ -129,6 +129,7 @@ int main()
 	}
 	close(gpio_fd);
 
+	sleep(1); // Give udev time to chmod() the files
 	if ((gpio_fd = open("/sys/class/gpio/gpio"GPIO_PINNUM"/edge", O_WRONLY)) == -1) {
 		perror("Failed opening /sys/class/gpio/gpio"GPIO_PINNUM"/edge");
 		retval = EXIT_FAILURE;
