@@ -226,6 +226,12 @@ int main()
 		for (i = 0; i < nfds; i++) {
 			if (ev[i].data.fd == gpio_fd) {
 				// clear readable status
+				if (lseek(gpio_fd, 0, SEEK_SET) == (off_t) -1) {
+					perror("lseek()");
+					retval = EXIT_FAILURE;
+					terminate = 1;
+					continue;
+				}
 				if (read(gpio_fd, rdbuf, sizeof(rdbuf)) < 0) {
 					perror("read()");
 					retval = EXIT_FAILURE;
